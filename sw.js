@@ -3,7 +3,7 @@ const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
-  "./app.js",
+  "./client.js",
   "./manifest.json",
   "./assets/icon.svg",
   "./assets/oracle-disc.png",
