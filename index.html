@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="天机合参 - 融合易经、吠陀占星与西方占星的占卜命理原型。"
+    />
+    <meta name="theme-color" content="#080b0d" />
+    <title>天机合参</title>
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <header class="topbar" aria-label="应用导航">
+        <a class="brand" href="#app" aria-label="天机合参首页">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 44 44" role="img">
+              <path d="M22 3.8 38.5 13v18L22 40.2 5.5 31V13L22 3.8Z" />
+              <path d="M13.2 18h17.6M13.2 22h7.3m3 0h7.3M13.2 26h17.6" />
+              <circle cx="22" cy="22" r="15.4" />
+            </svg>
+          </span>
+          <span>
+            <strong>天机合参</strong>
+            <small>I Ching · BPHS · Astrology</small>
+          </span>
+        </a>
+
+        <nav class="nav-tabs" aria-label="主导航">
+          <button class="nav-tab is-active" type="button">合参</button>
+          <button class="nav-tab" type="button" id="libraryNav">案例库</button>
+          <button class="nav-tab" type="button" id="methodNav">算法口径</button>
+        </nav>
+
+        <div class="top-actions">
+          <button class="icon-button" type="button" id="copyTop" aria-label="复制报告">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M9 9h10v11H9z" />
+              <path d="M5 4h10v4M5 4v11h3" />
+            </svg>
+          </button>
+          <button class="primary-lite" type="button" id="saveTop">保存案例</button>
+        </div>
+      </header>
+
+      <main class="app-grid" id="app">
+        <section class="panel input-panel" aria-labelledby="inputTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">命主资料</p>
+              <h1 id="inputTitle">出生信息与问事</h1>
+            </div>
+            <span class="signal-dot" aria-label="本地推演引擎已就绪"></span>
+          </div>
+
+          <form id="calcForm" class="input-form">
+            <div class="field-row two">
+              <label>
+                <span>性别</span>
+                <select id="gender">
+                  <option value="男">男</option>
+                  <option value="女">女</option>
+                  <option value="未指定">未指定</option>
+                </select>
+              </label>
+              <label>
+                <span>咨询主题</span>
+                <select id="topic">
+                  <option value="事业与关系">事业与关系</option>
+                  <option value="感情合盘">感情合盘</option>
+                  <option value="财富机会">财富机会</option>
+                  <option value="年度流年">年度流年</option>
+                  <option value="自我定位">自我定位</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="field-row two">
+              <label>
+                <span>出生日期</span>
+                <input id="birthDate" type="date" value="1986-09-21" />
+              </label>
+              <label>
+                <span>出生时间</span>
+                <input id="birthTime" type="time" value="23:45" />
+              </label>
+            </div>
+
+            <label>
+              <span>出生地</span>
+              <input
+                id="birthPlace"
+                list="placeList"
+                value="广东省"
+                autocomplete="off"
+              />
+              <datalist id="placeList">
+                <option value="广东省"></option>
+                <option value="深圳"></option>
+                <option value="北京"></option>
+                <option value="上海"></option>
+                <option value="香港"></option>
+                <option value="台北"></option>
+                <option value="新加坡"></option>
+                <option value="洛杉矶"></option>
+                <option value="纽约"></option>
+                <option value="伦敦"></option>
+              </datalist>
+            </label>
+
+            <label>
+              <span>具体想问</span>
+              <textarea
+                id="question"
+                rows="4"
+                placeholder="例如：当前事业方向、关系张力、今年是否适合扩张..."
+              >当前阶段事业扩张与亲密关系如何互相影响？</textarea>
+            </label>
+
+            <div class="mode-group" aria-label="推演模式">
+              <button class="mode is-active" type="button" data-mode="natal">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8" />
+                  <path d="M12 4v16M4 12h16" />
+                </svg>
+                本命盘
+              </button>
+              <button class="mode" type="button" data-mode="iching">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 7h14M5 12h6m2 0h6M5 17h14" />
+                </svg>
+                起卦
+              </button>
+              <button class="mode" type="button" data-mode="synastry">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <circle cx="9" cy="12" r="5" />
+                  <circle cx="15" cy="12" r="5" />
+                </svg>
+                合盘
+              </button>
+              <button class="mode" type="button" data-mode="transit">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M4 12a8 8 0 1 0 2.3-5.7" />
+                  <path d="M4 5v7h7" />
+                </svg>
+                流年
+              </button>
+            </div>
+
+            <div class="dial-control">
+              <label for="depth">解读深度</label>
+              <input id="depth" type="range" min="1" max="4" value="3" />
+              <span id="depthLabel">深度</span>
+            </div>
+
+            <label>
+              <span>解读风格</span>
+              <select id="readingStyle">
+                <option value="classical">古典严谨</option>
+                <option value="gentle">温柔陪伴</option>
+                <option value="strategic">商业决策</option>
+              </select>
+            </label>
+
+            <button class="invoke" type="submit">
+              <span>合参推演</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M5 12h13M13 6l6 6-6 6" />
+              </svg>
+            </button>
+          </form>
+        </section>
+
+        <section class="panel oracle-panel" aria-labelledby="oracleTitle">
+          <div class="panel-heading compact">
+            <div>
+              <p class="section-label">计算盘</p>
+              <h2 id="oracleTitle">易经 × 吠陀 × 西占</h2>
+            </div>
+            <div class="engine-chip">
+              <span></span>
+              本地规则引擎
+            </div>
+          </div>
+
+          <div class="oracle-stage">
+            <img src="./assets/oracle-disc.png" alt="" class="oracle-art" />
+            <div class="chart-ring" aria-hidden="true">
+              <span style="--i: 0"></span>
+              <span style="--i: 1"></span>
+              <span style="--i: 2"></span>
+              <span style="--i: 3"></span>
+              <span style="--i: 4"></span>
+              <span style="--i: 5"></span>
+              <span style="--i: 6"></span>
+              <span style="--i: 7"></span>
+            </div>
+            <div class="hexagram-card">
+              <div>
+                <small>本卦</small>
+                <strong id="hexName">乾为天</strong>
+              </div>
+              <div class="hex-lines" id="hexLines" aria-label="六爻卦象"></div>
+              <p id="changingLines">初爻、四爻动</p>
+            </div>
+          </div>
+
+          <div class="param-grid" aria-label="推演参数">
+            <article>
+              <span>易经卦象</span>
+              <strong id="trigramPair">乾上 · 震下</strong>
+              <small id="hexTheme">开创、决断、时机</small>
+            </article>
+            <article>
+              <span>吠陀上升</span>
+              <strong id="vedicAsc">Mithuna 双子</strong>
+              <small id="nakshatra">Nakshatra: Ashwini</small>
+            </article>
+            <article>
+              <span>西占骨架</span>
+              <strong id="westernCore">太阳处女 · 月亮白羊</strong>
+              <small id="westernAsc">上升巨蟹</small>
+            </article>
+            <article>
+              <span>当前周期</span>
+              <strong id="currentDasha">火星大运</strong>
+              <small id="dashaRange">2023 - 2030</small>
+            </article>
+          </div>
+
+          <div class="phase-strip" aria-label="周期轴">
+            <div>
+              <span>起盘</span>
+              <b id="phaseBirth">1986-09-21 23:45</b>
+            </div>
+            <div>
+              <span>时区</span>
+              <b id="phaseZone">UTC+8 · 广东省</b>
+            </div>
+            <div>
+              <span>今日值符</span>
+              <b id="dayOracle">开门 · 震木</b>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel report-panel" aria-labelledby="reportTitle">
+          <div class="panel-heading">
+            <div>
+              <p class="section-label">生成结果</p>
+              <h2 id="reportTitle">深度报告</h2>
+            </div>
+            <button class="icon-button" type="button" id="copyReport" aria-label="复制报告">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 9h10v11H9z" />
+                <path d="M5 4h10v4M5 4v11h3" />
+              </svg>
+            </button>
+          </div>
+
+          <div class="reading-summary">
+            <p id="readingIntro">
+              命盘呈现“智识开局、以动求成”的结构。此处会随输入自动生成合参判词。
+            </p>
+          </div>
+
+          <div class="report-sections" id="reportSections"></div>
+
+          <div class="report-actions">
+            <button class="secondary" type="button" id="saveCase">保存案例</button>
+            <button class="secondary" type="button" id="resetDemo">恢复示例</button>
+          </div>
+
+          <p class="notice">
+            原型用于文化娱乐与自我反思。生产版本建议接入高精度星历库、地理编码与内容安全规则。
+          </p>
+        </section>
+      </main>
+
+      <footer class="status-bar">
+        <div>
+          <span>大运</span>
+          <strong id="statusDasha">火星大运 2023-2030</strong>
+        </div>
+        <div>
+          <span>今日值符</span>
+          <strong id="statusOracle">开门 · 震木</strong>
+        </div>
+        <div>
+          <span>起卦种子</span>
+          <strong id="statusSeed">198609212345</strong>
+        </div>
+        <button type="button" id="installHint">加入桌面</button>
+      </footer>
+    </div>
+
+    <dialog id="caseDialog" class="case-dialog">
+      <form method="dialog">
+        <div class="dialog-head">
+          <h2>案例库</h2>
+          <button class="icon-button" value="close" aria-label="关闭案例库">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+        <div id="caseList" class="case-list"></div>
+      </form>
+    </dialog>
+
+    <dialog id="methodDialog" class="case-dialog">
+      <form method="dialog">
+        <div class="dialog-head">
+          <h2>算法口径</h2>
+          <button class="icon-button" value="close" aria-label="关闭算法口径">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+        <div class="method-copy">
+          <p>
+            当前原型使用本地轻量规则：易经按出生与问事种子起卦；太阳、月亮、上升点使用简化天文公式；
+            吠陀参数以近似 Lahiri ayanamsa 推算 Nakshatra 与 Vimshottari Dasha。
+          </p>
+          <p>
+            商业版本应替换为 Swiss Ephemeris 或等价高精度星历、城市经纬度库、夏令时校验、内容安全与付费报告模板。
+          </p>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js" defer></script>
+  </body>
+</html>

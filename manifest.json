@@ -1,0 +1,17 @@
+{
+  "name": "天机合参",
+  "short_name": "天机合参",
+  "description": "融合易经、吠陀占星与西方占星的占卜命理原型。",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#080b0d",
+  "theme_color": "#080b0d",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
