@@ -30,3 +30,12 @@ npm run dev
 - `MINIMAX_BASE_URL`：默认 `https://api.minimax.io/v1`。
 
 GitHub Pages 只能托管静态文件，不能运行 `/api/generate-reading`。要让 MiniMax 真正生效，请部署到 Vercel、Netlify Functions、Cloudflare Workers/Pages Functions 等支持服务端函数的平台。
+
+## Vercel 部署
+
+1. 在 Vercel 导入 GitHub 仓库 `tukii9912-create/tianji-hecan-prototype`。
+2. Framework Preset 选择 `Other`。
+3. Build Command 留空。
+4. Output Directory 留空或使用默认根目录。
+5. 在 Environment Variables 填入 `MINIMAX_API_KEY`、`MINIMAX_MODEL`、`MINIMAX_BASE_URL`。
+6. 部署完成后打开 Vercel 域名，点击“合参推演”即可调用 MiniMax。
