@@ -1,7 +1,6 @@
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-const generateReading = require("./api/generate-reading");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 4173);
@@ -14,6 +13,33 @@ const mimeTypes = {
   ".png": "image/png",
   ".webmanifest": "application/manifest+json",
 };
+
+function loadLocalEnv() {
+  for (const filename of [".env.local", ".env"]) {
+    const filePath = path.join(root, filename);
+    if (!fs.existsSync(filePath)) {
+      continue;
+    }
+
+    const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) {
+        continue;
+      }
+      const index = trimmed.indexOf("=");
+      const key = trimmed.slice(0, index).trim();
+      const value = trimmed.slice(index + 1).trim().replace(/^["']|["']$/g, "");
+      if (key && process.env[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  }
+}
+
+loadLocalEnv();
+
+const generateReading = require("./api/generate-reading");
 
 function serveStatic(req, res) {
   const requestUrl = new URL(req.url, `http://localhost:${port}`);
