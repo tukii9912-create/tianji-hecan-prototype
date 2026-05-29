@@ -171,6 +171,8 @@ const modeCopy = {
 const state = {
   mode: "natal",
   lastReading: "",
+  lastContext: null,
+  generationId: 0,
   installPrompt: null,
 };
 
@@ -481,6 +483,20 @@ function createReport(input, astrology, hex) {
   return { intro, sections };
 }
 
+function buildReadingContext() {
+  const birth = parseBirth();
+  const input = getInput();
+  const seedText = `${birth.display}|${birth.place.name}|${input.gender}|${input.topic}|${input.question}|${state.mode}`;
+  const seed = hashString(seedText);
+  const hex = buildHexagram(seed);
+  const astrology = calculateAstrology(birth);
+  const dasha = astrology.vedic.dasha.current;
+  const day = buildHexagram(hashString(new Date().toISOString().slice(0, 10) + birth.place.name));
+  const report = createReport(input, astrology, hex);
+
+  return { birth, input, seed, hex, astrology, dasha, day, report, mode: state.mode };
+}
+
 function iconSvg(type) {
   const icons = {
     hex: '<path d="M5 7h14M5 12h6m2 0h6M5 17h14" />',
@@ -506,18 +522,48 @@ function updateDepthLabel() {
   $("#depthLabel").textContent = labels[Number($("#depth").value) - 1];
 }
 
+function renderReport(report, sourceLabel = "本地规则报告") {
+  $("#readingIntro").textContent = report.intro;
+  $("#reportSections").innerHTML = report.sections
+    .map(
+      (section) => `
+      <article class="report-section">
+        <h3>${iconSvg(section.icon)}${section.title}</h3>
+        <p>${section.body}</p>
+      </article>
+    `,
+    )
+    .join("");
+
+  state.lastReading = [
+    `天机合参 · ${modeCopy[state.mode]} · ${sourceLabel}`,
+    `命主：${state.lastContext.input.gender}｜${state.lastContext.birth.display}｜${state.lastContext.birth.place.name}`,
+    `主题：${state.lastContext.input.topic}`,
+    "",
+    report.intro,
+    "",
+    ...report.sections.map((section) => `【${section.title}】\n${section.body}`),
+  ].join("\n");
+}
+
+function setAiStatus(status, text) {
+  const chip = $(".engine-chip");
+  const label = $("#engineLabel");
+  const line = $("#providerLine");
+  chip.classList.toggle("is-loading", status === "loading");
+  chip.classList.toggle("is-error", status === "error");
+  label.textContent = text;
+  if (line) {
+    line.textContent = text;
+  }
+}
+
 function updateReading() {
   updateDepthLabel();
-  const birth = parseBirth();
-  const input = getInput();
-  const seedText = `${birth.display}|${birth.place.name}|${input.gender}|${input.topic}|${input.question}|${state.mode}`;
-  const seed = hashString(seedText);
-  const hex = buildHexagram(seed);
-  const astrology = calculateAstrology(birth);
-  const report = createReport(input, astrology, hex);
-  const dasha = astrology.vedic.dasha.current;
+  const context = buildReadingContext();
+  state.lastContext = context;
+  const { birth, seed, hex, astrology, dasha, day, report } = context;
   const dashaShort = dasha.lord.name.split(" ")[0];
-  const day = buildHexagram(hashString(new Date().toISOString().slice(0, 10) + birth.place.name));
 
   $("#hexName").textContent = hex.name;
   $("#changingLines").textContent = `${movingLineText(hex.moving)} · 变「${hex.changedName}」`;
@@ -532,31 +578,102 @@ function updateReading() {
   $("#phaseBirth").textContent = birth.display;
   $("#phaseZone").textContent = `UTC${birth.place.tz >= 0 ? "+" : ""}${birth.place.tz} · ${birth.place.name}`;
   $("#dayOracle").textContent = `${day.lower.virtue} · ${day.lower.nature}${day.upper.nature}`;
-  $("#readingIntro").textContent = report.intro;
-  $("#reportSections").innerHTML = report.sections
-    .map(
-      (section) => `
-      <article class="report-section">
-        <h3>${iconSvg(section.icon)}${section.title}</h3>
-        <p>${section.body}</p>
-      </article>
-    `,
-    )
-    .join("");
   $("#statusDasha").textContent = `${dashaShort}大运 ${formatYear(dasha.start)}-${formatYear(dasha.end)}`;
   $("#statusOracle").textContent = `${day.name} · ${day.lower.nature}${day.upper.nature}`;
   $("#statusSeed").textContent = String(seed).slice(0, 10);
   renderHexLines(hex);
+  renderReport(report);
+  setAiStatus("ready", "本地规则已生成。点击“合参推演”尝试 MiniMax AI 深盘。");
+}
 
-  state.lastReading = [
-    `天机合参 · ${modeCopy[state.mode]}`,
-    `命主：${input.gender}｜${birth.display}｜${birth.place.name}`,
-    `主题：${input.topic}`,
-    "",
-    report.intro,
-    "",
-    ...report.sections.map((section) => `【${section.title}】\n${section.body}`),
-  ].join("\n");
+function buildAiPayload(context) {
+  return {
+    app: "天机合参",
+    mode: context.mode,
+    modeLabel: modeCopy[context.mode],
+    input: {
+      gender: context.input.gender,
+      topic: context.input.topic,
+      question: context.input.question,
+      style: context.input.style,
+      depth: context.input.depth,
+    },
+    birth: {
+      localDate: context.birth.localDate,
+      localTime: context.birth.localTime,
+      place: context.birth.place.name,
+      timezone: `UTC${context.birth.place.tz >= 0 ? "+" : ""}${context.birth.place.tz}`,
+      lat: context.birth.place.lat,
+      lon: context.birth.place.lon,
+    },
+    iching: {
+      seed: context.seed,
+      primaryHexagram: context.hex.name,
+      changedHexagram: context.hex.changedName,
+      upperTrigram: context.hex.upper.name,
+      lowerTrigram: context.hex.lower.name,
+      movingLines: context.hex.moving,
+      theme: context.hex.theme,
+    },
+    vedic: {
+      lagna: context.astrology.vedic.asc,
+      moon: context.astrology.vedic.moon,
+      sun: context.astrology.vedic.sun,
+      nakshatra: context.astrology.vedic.nakshatra,
+      dasha: {
+        lord: context.dasha.lord.name,
+        start: formatYear(context.dasha.start),
+        end: formatYear(context.dasha.end),
+      },
+    },
+    western: {
+      sun: context.astrology.western.sun,
+      moon: context.astrology.western.moon,
+      ascendant: context.astrology.western.asc,
+    },
+    localReport: context.report,
+  };
+}
+
+async function generateAiReport() {
+  const context = state.lastContext || buildReadingContext();
+  const runId = ++state.generationId;
+  const button = $(".invoke");
+  button.disabled = true;
+  setAiStatus("loading", "MiniMax AI 深盘生成中...");
+
+  try {
+    const response = await fetch("./api/generate-reading", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(buildAiPayload(context)),
+    });
+    const data = await response.json().catch(() => ({}));
+
+    if (runId !== state.generationId) {
+      return;
+    }
+
+    if (!response.ok || !data.ok) {
+      const message = data.message || "MiniMax 服务端暂未配置，已保留本地规则报告。";
+      setAiStatus("error", message);
+      showToast(message);
+      return;
+    }
+
+    renderReport(data.report, `${data.provider || "MiniMax"} AI 深盘`);
+    setAiStatus("ready", `${data.provider || "MiniMax"} AI 深盘已生成 · ${data.model || "model"}`);
+    showToast("MiniMax AI 深盘已生成");
+  } catch (error) {
+    if (runId === state.generationId) {
+      setAiStatus("error", "当前部署没有可用 API 后端，已保留本地规则报告。");
+      showToast("已保留本地规则报告");
+    }
+  } finally {
+    if (runId === state.generationId) {
+      button.disabled = false;
+    }
+  }
 }
 
 function showToast(message) {
@@ -637,7 +754,7 @@ function attachEvents() {
   $("#calcForm").addEventListener("submit", (event) => {
     event.preventDefault();
     updateReading();
-    showToast(`${modeCopy[state.mode]}已完成`);
+    generateAiReport();
   });
 
   ["gender", "topic", "birthDate", "birthTime", "birthPlace", "question", "readingStyle", "depth"].forEach(

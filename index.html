@@ -183,7 +183,7 @@
             </div>
             <div class="engine-chip">
               <span></span>
-              本地规则引擎
+              <strong id="engineLabel">本地规则引擎</strong>
             </div>
           </div>
 
@@ -268,6 +268,10 @@
             </p>
           </div>
 
+          <div class="provider-line" id="providerLine">
+            本地规则已就绪。点击“合参推演”后会尝试调用 MiniMax 生成 AI 深盘。
+          </div>
+
           <div class="report-sections" id="reportSections"></div>
 
           <div class="report-actions">
@@ -276,7 +280,7 @@
           </div>
 
           <p class="notice">
-            原型用于文化娱乐与自我反思。生产版本建议接入高精度星历库、地理编码与内容安全规则。
+            原型用于文化娱乐与自我反思。MiniMax API key 只应配置在服务端环境变量中，不要放进前端代码。
           </p>
         </section>
       </main>
